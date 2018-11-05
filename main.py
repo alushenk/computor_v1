@@ -1,10 +1,13 @@
 import re
+import sys
+import cmath
 
 side_pattern = '\d+(\.\d+)? \* (x|X)\^\d+( [\+\-] \d+(\.\d+)? \* (x|X)\^\d+)*'
 expr_pattern = '^{0} = {0}$'.format(side_pattern)
 elem_pattern = '((?P<sign>\+|-) )?(?P<var>\d+(\.\d+)?) \* (X|x)\^(?P<degree>\d+)'
 
-expr = "5 * X^0 + 4 * X^1 = 4 * X^0"
+expr = "1 * x^2 - 8 * x^1 + 12 * x^0 = 0"
+expr = "1 * x^2 + 3 * x^1 + 3 * x^0 = 0"
 
 
 def abs(x):
@@ -17,20 +20,21 @@ def sign(x):
 
 from math import sqrt
 
+
 #
 # def sqrt(x):
 #     return x ** 0.5
 
 
-def sqrt(x):
-    x = float(x)
-    root = x / 2
-    for i in range(1000):
-        if root is 0:
-            return root
-        root = (root + x / root) / 2
-        print(root)
-    return root
+# def sqrt(x):
+#     x = float(x)
+#     root = x / 2
+#     for i in range(1000):
+#         if root is 0:
+#             return root
+#         root = (root + x / root) / 2
+#         print(root)
+#     return root
 
 
 def get_elements(expression, sign=1):
@@ -41,8 +45,6 @@ def get_elements(expression, sign=1):
             element['var'] = -float(element['var']) * sign
         else:
             element['var'] = float(element['var']) * sign
-        if element['sign'] is None:
-            element['sign'] = '+'
         element['degree'] = int(element['degree'])
         del element['sign']
         elements.append(element)
@@ -52,7 +54,8 @@ def get_elements(expression, sign=1):
 def get_params(expr):
     sides = expr.split('=')
     if len(sides) != 2:
-        raise ValueError('No "=" sign')
+        print('No "=" sign')
+        exit(0)
     left_side_elems = get_elements(sides[0].strip())
     right_side_elems = get_elements(sides[1].strip(), sign=-1)
     all_elems = left_side_elems + right_side_elems
@@ -70,6 +73,7 @@ def get_polynomial_degree(params):
 
 def get_reduced_form(params):
     reduced_form = str()
+    # при выводе параметры сортируются в порядке возростания
     for k in sorted(params.keys()):
         if params[k] != 0:
             if abs(params[k]) == 1:
@@ -78,7 +82,10 @@ def get_reduced_form(params):
                 reduced_form += '{0} {1} * X^{2} '.format(sign(params[k]), abs(params[k]), k)
     if not reduced_form:
         reduced_form += '0'
+    # убирает '+ ' вначале
     reduced_form = reduced_form.strip('+ ') + ' = 0'
+    # убирает .0
+    reduced_form = reduced_form.replace('.0 ', ' ')
     return reduced_form
 
 
@@ -90,8 +97,8 @@ def solve(a, b=0, c=0):
         if D < 0:
             return {'message': 'Square equation, discriminant less than zero, complex solution',
                     # можно сделать решение с комплексными числами
-                    # 'x': [(-b - sqrt(D)) / (2 * a),
-                    #       (-b + sqrt(D)) / (2 * a)]
+                    'x': [(-b - cmath.sqrt(D)) / (2 * a),
+                          (-b + cmath.sqrt(D)) / (2 * a)]
                     }
         if D == 0:
             return {'message': 'Square equation, one solution', 'x': [-b / (2 * a)]}
@@ -118,10 +125,11 @@ def main():
     params = get_params(expr)
     print('Reduced Form: ', get_reduced_form(params))
     polynomial_degree = get_polynomial_degree(params)
+    print('Polynomial degree: ', polynomial_degree)
     if polynomial_degree > 2:
         exit(0)
-    print('Polynomial degree: ', polynomial_degree)
-    params = [params[x] for x in params.keys()]
+    # при решении параметры сортируются в порядке спадания степени
+    params = [params[x] for x in sorted(params.keys(), reverse=True)]
     res = solve(*params[:3])
     print(res['message'])
     if len(res['x']) == 1: print('x = {0}'.format(res['x'][0]))
@@ -129,5 +137,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    sqrt(4345820390043958938279048578029358 * 4345820390043958938279048578029358)
+    main()
+    # sqrt(4345820390043958938279048578029358 * 4345820390043958938279048578029358)
