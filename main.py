@@ -1,13 +1,11 @@
+#! /usr/bin/env python
+
 import re
 import sys
-import cmath
 
 side_pattern = '\d+(\.\d+)? \* (x|X)\^\d+( [\+\-] \d+(\.\d+)? \* (x|X)\^\d+)*'
 expr_pattern = '^{0} = {0}$'.format(side_pattern)
 elem_pattern = '((?P<sign>\+|-) )?(?P<var>\d+(\.\d+)?) \* (X|x)\^(?P<degree>\d+)'
-
-expr = "1 * x^2 - 8 * x^1 + 12 * x^0 = 0"
-expr = "1 * x^2 + 3 * x^1 + 3 * x^0 = 0"
 
 
 def abs(x):
@@ -18,23 +16,25 @@ def sign(x):
     return '-' if x < 0 else '+'
 
 
-from math import sqrt
-
-
-#
-# def sqrt(x):
-#     return x ** 0.5
-
-
-# def sqrt(x):
-#     x = float(x)
-#     root = x / 2
-#     for i in range(1000):
-#         if root is 0:
-#             return root
-#         root = (root + x / root) / 2
-#         print(root)
-#     return root
+def mysqrt(x):
+    if x == 0:
+        return float(0)
+    if x > 0:
+        if x == 1:
+            return float(1)
+        left = 1
+        right = int(x / 2) + 1
+        while left <= right:
+            mid = int((left + right) / 2)
+            square = mid * mid
+            if square == x:
+                return mid
+            if square > x:
+                right = mid - 1
+            else:
+                left = mid + 1
+    else:
+        pass
 
 
 def get_elements(expression, sign=1):
@@ -90,22 +90,21 @@ def get_reduced_form(params):
 
 
 def solve(a, b=0, c=0):
-    print('a={} b={} c={}'.format(a, b, c))
     if a != 0:
-        D = b * b - 4 * a * c
-        print('D = {}'.format(D))
-        if D < 0:
+        d = b * b - 4 * a * c
+        print('d = {}'.format(d))
+        if d < 0:
+            x = (-b + d ** 0.5) / (2 * a)
             return {'message': 'Square equation, discriminant less than zero, complex solution',
-                    # можно сделать решение с комплексными числами
-                    'x': [(-b - cmath.sqrt(D)) / (2 * a),
-                          (-b + cmath.sqrt(D)) / (2 * a)]
+                    'x': ['{0.real:.2f} + {0.imag:.2f}i'.format(x),
+                          '{0.real:.2f} - {0.imag:.2f}i'.format(x)]
                     }
-        if D == 0:
+        if d == 0:
             return {'message': 'Square equation, one solution', 'x': [-b / (2 * a)]}
 
-        return {'message': 'Discriminant is strictly positive, the two solutions are:',
-                'x': [(-b - sqrt(D)) / (2 * a),
-                      (-b + sqrt(D)) / (2 * a)]}
+        return {'message': 'discriminant is strictly positive, the two solutions are:',
+                'x': ['{0:0.3f}'.format((-b - d ** 0.5) / (2 * a)),
+                      '{0:0.3f}'.format((-b + d ** 0.5) / (2 * a))]}
 
     if b != 0:
         x = - c / b
@@ -118,8 +117,13 @@ def solve(a, b=0, c=0):
 
 
 def main():
+    if len(sys.argv) != 2:
+        exit('Wrong arguments')
+
+    expr = sys.argv[1]
+
     if not re.match(expr_pattern, expr):
-        print('Expression not valid')
+        exit('Expression not valid')
 
     print('Input expression:', expr)
     params = get_params(expr)
@@ -127,15 +131,26 @@ def main():
     polynomial_degree = get_polynomial_degree(params)
     print('Polynomial degree: ', polynomial_degree)
     if polynomial_degree > 2:
-        exit(0)
+        exit('The polynomial degree is stricly greater than 2, I can\'t solve.')
     # при решении параметры сортируются в порядке спадания степени
     params = [params[x] for x in sorted(params.keys(), reverse=True)]
     res = solve(*params[:3])
     print(res['message'])
-    if len(res['x']) == 1: print('x = {0}'.format(res['x'][0]))
-    if len(res['x']) == 2: print('x1 = {0}, x2 = {1}'.format(res['x'][0], res['x'][1]))
+    if len(res['x']) == 1:
+        print('x = {0}'.format(res['x'][0]))
+    if len(res['x']) == 2:
+        print('x1 = {0}, x2 = {1}'.format(res['x'][0], res['x'][1]))
 
 
+from math import sqrt
 if __name__ == '__main__':
-    main()
-    # sqrt(4345820390043958938279048578029358 * 4345820390043958938279048578029358)
+    # main()
+    a = 9348570292345236
+    res = mysqrt(a * a)
+    print(a)
+    print(res)
+    if res == a:
+        print('zaebis')
+    b = 1
+    print(sqrt(b))
+    print(mysqrt(b))
