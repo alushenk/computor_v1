@@ -3,7 +3,7 @@
 import re
 import sys
 
-side_pattern = '\d+(\.\d+)? \* (x|X)\^\d+( [\+\-] \d+(\.\d+)? \* (x|X)\^\d+)*'
+side_pattern = '([\+\-] )?\d+(\.\d+)? \* (x|X)\^\d+( [\+-] \d+(\.\d+)? \* (x|X)\^\d+)*'
 expr_pattern = '^{0} = {0}$'.format(side_pattern)
 elem_pattern = '((?P<sign>\+|-) )?(?P<var>\d+(\.\d+)?) \* (X|x)\^(?P<degree>\d+)'
 
@@ -74,6 +74,8 @@ def get_reduced_form(params):
                 reduced_form += '{0} X^{1} '.format(sign(params[k]), k)
             else:
                 reduced_form += '{0} {1} * X^{2} '.format(sign(params[k]), abs(params[k]), k)
+            if k != 1:
+                reduced_form +=
     if not reduced_form:
         reduced_form += '0'
     # убирает '+ ' вначале
@@ -84,6 +86,7 @@ def get_reduced_form(params):
 
 
 def solve(a, b=0, c=0):
+    # print('a={} b={} c={}'.format(a, b, c))
     if a != 0:
         d = b * b - 4 * a * c
         # print('d = {}'.format(d))
@@ -130,13 +133,11 @@ def main():
     if polynomial_degree > 2:
         exit('The polynomial degree is stricly greater than 2, I can\'t solve.')
 
-    # достаем значения отсортированные в порядке возрастания степеней
-    params = [params[x] for x in sorted(params.keys())]
+    a = params.get(2, 0)
+    b = params.get(1, 0)
+    c = params.get(0, 0)
 
-    # при решении параметры сортируются в порядке спадания степени
-    params = list(reversed(params[:3]))
-
-    res = solve(*params[:3])
+    res = solve(a, b, c)
 
     print(res['message'])
     if len(res['x']) == 1:
@@ -147,3 +148,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# "15 * x^0 - 2 * x^1 - 1 * x^2 = 0 * x^3"
+# 3 -5
+
+# "1 * x^2 - 2 * x^1 - 3 * x^0 = 0 * x^8"
+# -1 3
+
+# "1 * x^2 + 12 * x^1 + 36 * x^0 = 0 * x^4"
+# -6
