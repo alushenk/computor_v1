@@ -16,25 +16,21 @@ def sign(x):
     return '-' if x < 0 else '+'
 
 
-def mysqrt(x):
-    if x == 0:
-        return float(0)
-    if x > 0:
-        if x == 1:
-            return float(1)
-        left = 1
-        right = int(x / 2) + 1
-        while left <= right:
-            mid = int((left + right) / 2)
-            square = mid * mid
-            if square == x:
-                return mid
-            if square > x:
-                right = mid - 1
-            else:
-                left = mid + 1
-    else:
-        pass
+def sqrt(n):
+    sign = 0
+    if n < 0:
+        sign = -1
+        n = -n
+    val = n
+    while True:
+        last = val
+        val = (val + n / val) / 2
+        # 1 ^ -9 == 0.000000001
+        if abs(val - last) < 1e-9:
+            break
+    if sign < 0:
+        return complex(0, val)
+    return val
 
 
 def get_elements(expression, sign=1):
@@ -53,9 +49,6 @@ def get_elements(expression, sign=1):
 
 def get_params(expr):
     sides = expr.split('=')
-    if len(sides) != 2:
-        print('No "=" sign')
-        exit(0)
     left_side_elems = get_elements(sides[0].strip())
     right_side_elems = get_elements(sides[1].strip(), sign=-1)
     all_elems = left_side_elems + right_side_elems
@@ -68,7 +61,8 @@ def get_params(expr):
 
 
 def get_polynomial_degree(params):
-    return max(params.keys())
+    params = [x for x in params.keys() if params[x] != 0]
+    return max(params)
 
 
 def get_reduced_form(params):
@@ -92,9 +86,9 @@ def get_reduced_form(params):
 def solve(a, b=0, c=0):
     if a != 0:
         d = b * b - 4 * a * c
-        print('d = {}'.format(d))
+        # print('d = {}'.format(d))
         if d < 0:
-            x = (-b + d ** 0.5) / (2 * a)
+            x = (-b + sqrt(d)) / (2 * a)
             return {'message': 'Square equation, discriminant less than zero, complex solution',
                     'x': ['{0.real:.2f} + {0.imag:.2f}i'.format(x),
                           '{0.real:.2f} - {0.imag:.2f}i'.format(x)]
@@ -103,8 +97,8 @@ def solve(a, b=0, c=0):
             return {'message': 'Square equation, one solution', 'x': [-b / (2 * a)]}
 
         return {'message': 'discriminant is strictly positive, the two solutions are:',
-                'x': ['{0:0.3f}'.format((-b - d ** 0.5) / (2 * a)),
-                      '{0:0.3f}'.format((-b + d ** 0.5) / (2 * a))]}
+                'x': ['{0:0.3f}'.format((-b - sqrt(d)) / (2 * a)),
+                      '{0:0.3f}'.format((-b + sqrt(d)) / (2 * a))]}
 
     if b != 0:
         x = - c / b
@@ -126,15 +120,24 @@ def main():
         exit('Expression not valid')
 
     print('Input expression:', expr)
+
     params = get_params(expr)
     print('Reduced Form: ', get_reduced_form(params))
+
     polynomial_degree = get_polynomial_degree(params)
     print('Polynomial degree: ', polynomial_degree)
+
     if polynomial_degree > 2:
         exit('The polynomial degree is stricly greater than 2, I can\'t solve.')
+
+    # достаем значения отсортированные в порядке возрастания степеней
+    params = [params[x] for x in sorted(params.keys())]
+
     # при решении параметры сортируются в порядке спадания степени
-    params = [params[x] for x in sorted(params.keys(), reverse=True)]
+    params = list(reversed(params[:3]))
+
     res = solve(*params[:3])
+
     print(res['message'])
     if len(res['x']) == 1:
         print('x = {0}'.format(res['x'][0]))
@@ -142,15 +145,5 @@ def main():
         print('x1 = {0}, x2 = {1}'.format(res['x'][0], res['x'][1]))
 
 
-from math import sqrt
 if __name__ == '__main__':
-    # main()
-    a = 9348570292345236
-    res = mysqrt(a * a)
-    print(a)
-    print(res)
-    if res == a:
-        print('zaebis')
-    b = 1
-    print(sqrt(b))
-    print(mysqrt(b))
+    main()
