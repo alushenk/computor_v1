@@ -188,7 +188,7 @@ def main():
 
     print(res['message'])
     if len(res['x']) == 1:
-        print('x = {0}'.format(res['x'][0]))
+        print('x = {0:0.3f}'.format(res['x'][0]))
     if len(res['x']) == 2:
         print('x1 = {0}, x2 = {1}'.format(res['x'][0], res['x'][1]))
 
