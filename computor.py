@@ -70,19 +70,33 @@ def get_reduced_form(params):
     # при выводе параметры сортируются в порядке возростания
     for k in sorted(params.keys()):
         if params[k] != 0:
+            # если параметр 1 то его можно не писать
             if abs(params[k]) == 1:
-                reduced_form += '{0} X^{1} '.format(sign(params[k]), k)
+                # если степень 1 выводим Х
+                if k == 1:
+                    reduced_form += '{} X '.format(sign(params[k]))
+                # если степень 0 то выводим 1
+                elif k == 0:
+                    reduced_form += '{} 1 '.format(sign(params[k]))
+                else:
+                    reduced_form += '{} X^{} '.format(sign(params[k]), k)
             else:
-                reduced_form += '{0} {1} * X^{2} '.format(sign(params[k]), abs(params[k]), k)
-            if k != 1:
-                reduced_form +=
+                # если степень 1 выводим Х
+                if k == 1:
+                    reduced_form += '{} {} * X '.format(sign(params[k]), abs(params[k]))
+                # если степень 0 выводим само число
+                elif k == 0:
+                    reduced_form += '{} {} '.format(sign(params[k]), abs(params[k]))
+                else:
+                    reduced_form += '{} {} * X^{} '.format(sign(params[k]), abs(params[k]), k)
+
     if not reduced_form:
-        reduced_form += '0'
+        reduced_form = '0'
     # убирает '+ ' вначале
-    reduced_form = reduced_form.strip('+ ') + ' = 0'
+    reduced_form = reduced_form.lstrip('+ ')
     # убирает .0
     reduced_form = reduced_form.replace('.0 ', ' ')
-    return reduced_form
+    return reduced_form + '= 0'
 
 
 def solve(a, b=0, c=0):
@@ -157,3 +171,6 @@ if __name__ == '__main__':
 
 # "1 * x^2 + 12 * x^1 + 36 * x^0 = 0 * x^4"
 # -6
+
+# "5 * x^0 + 4 * X^1 + 1 * X^2 = 1 * X^2"
+# -1.25
